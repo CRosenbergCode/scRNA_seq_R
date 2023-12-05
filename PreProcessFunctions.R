@@ -117,6 +117,7 @@ preprocess3files("samples_1_2")
 
 # list of gene names, e.g. 'MIR1302-2HG'
 
+replaceGeneName("Sample3_500E/features.tsv.gz","Cxt_annot_corrections_10_30.csv")
 replaceGeneName("pooledE3000/features.tsv.gz","Cxt_annot_corrections_10_30.csv")
 replaceGeneName("pooledE4000/features.tsv.gz","Cxt_annot_corrections_10_30.csv")
 
@@ -192,7 +193,7 @@ seur_sce = runSeuratPCA(inSCE = seur_sce, useAssay = "seuratNormData", reducedDi
 
 seur_sce = runSeuratFindClusters(inSCE = seur_sce, useReduction = "pca", resolution = 0.8, algorithm = "louvain", dims = 10) 
 
-seur_sce = runSeuratFindMarkers(inSCE = seur_sce, allGroup = "Seurat_louvain_Resolution0.8")
+seur_sce = runSeuratFindMarkers(inSCE = seur_sce, allGroup = "Seurat_louvain_Resolution0.8") #Consi
 
 markerGenes = metadata(seur_sce)[["seuratMarkers"]] 
 
@@ -260,7 +261,7 @@ getAllMarkers = function(RDSfile,sam_name, verbose=FALSE,topN=10){
   
   markerGenes = markerGenes[order(-markerGenes$avg_log2FC, markerGenes$p_val),]
   
-  temp_seur.markers <- FindAllMarkers(temp_seur, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+  temp_seur.markers <- FindAllMarkers(temp_seur, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25) #Originlly 0.25 for min.pct and 0.25 for logfc.threshold
   
   temp_seur.markers %>%
     group_by(cluster) %>%
@@ -392,14 +393,50 @@ filterCells = function(sce,decont=TRUE,doublet=TRUE,mito=TRUE,plots=TRUE,RDS=FAL
   return(subsetted)
   
   sce = subset(sce, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5 & decontX_contamination == "Singlet" & scDblFinder_doublet_call < 0.9 & nCount_RNA < 200) 
+  sce_cols = subsetSCECols(sce, colData = c("total > 525", 
+                                            "detected > 300",paste("mito_percent < ",mito_int," + ",mito_tolerance,"/mito_detected",sep="")
+                                            ,'scDblFinder_doublet_call == "Singlet"',"decontX_contamination < 0.7"))
 }
 
-plotGene = function(gene,all=TRUE,ridge=TRUE,umap=TRUE,){
-  plotSeuratGenes(inSCE = seur_sce, useAssay = "seuratNormData", plotType = "ridge", features = gene, groupVariable = "Seurat_louvain_Resolution0.8", ncol = 2, combine = TRUE) + ylab("Cluster Identity")
+plotGene = function(sce,gene,all=TRUE,ridge=TRUE,umap=TRUE,){
+  plotSeuratGenes(inSCE = sce, useAssay = "seuratNormData", plotType = "ridge", features = gene, groupVariable = "Seurat_louvain_Resolution0.8", ncol = 2, combine = TRUE) + ylab("Cluster Identity")
   #FeaturePlot(seur_sce, features = c("CecA1","VgR"))#features)
-  FeaturePlot(seur_sce, features = gene, min.cutoff = 1, max.cutoff = 3)
-  VlnPlot(pbmc3k.final, features = c(gene))
+  
+  FeaturePlot(sce, features = gene, min.cutoff = 1, max.cutoff = 3)
+  VlnPlot(sce, features = gene)
+  
+  #quantile(t(temp_seur[["mito_percent"]]))
+  for(i in seq(0,13)){
+    #clust = seur_sce[,test == i]
+    clust = subset(x = temp_seur, subset = seurat_clusters == i)
+    print(paste("Cluster ",i,sep=""))
+    #print(length(test[test==i]))
+    print(median(clust[["total"]]))
+    print(median(clust[["detected"]]))
+    print(median(clust[["detected"]])/median(clust[["total"]]))
+    print(median(clust[["mito_percent"]]))
+    print(length(test[test == i]))
+    #print()
+  }
+}
+
+getClusterSummary = function(sce,verbose = TRUE){
+  #Cluster Number
+  #Number of Cell
+  #Average UMIs
+  #Average Feature
+  #Markers
+  #Most highly expressed features
+  #Average mito percentage
+  #Average doublet
+  #Average contamination
+  print(ret_table)
+  return(ret_table)
+}
+getDotPlot = function(,genes,display=TRUE){
   
 }
 
-
+getHeatMap = function(,display=TRUE){
+  
+}
