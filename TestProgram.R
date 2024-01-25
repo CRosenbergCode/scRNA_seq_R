@@ -3,13 +3,24 @@ library(dplyr)
 library(singleCellTK)
 library(dittoSeq)
 library(ggplot2)
+
+library(reticulate)
+#use_python("/home/camcorey/.local/lib/python3.8/")
+#Check for your local system
+#For leidenalg used in clustering, updated version of 
+#Must install through python with "pip install leidenalg"
 #library(SeuratDisk)
 #library(SeuratData)
 #packageDescription("singleCellTK")$Version
 #packageDescription("SummarizedExperiment")$Version
-#R.version
+R.version
 #singleCellTK()
+#cxtovary = Read10X(data.dir = "~/datasets/pooledE4000")
 cxtovary = Read10X(data.dir = "~/datasets/samplePooledMito")
+#cxtovary = Read10X(data.dir = "~/datasets/oldSamp")
+
+#Features fil 31 instead of 53, 22 short)
+
 cxt_seurat = CreateSeuratObject(counts = cxtovary)
 ctx_seurat = NormalizeData(object = cxt_seurat)
 cxt_seurat = FindVariableFeatures(object = cxt_seurat)
@@ -18,9 +29,9 @@ cxt_seurat = RunPCA(cxt_seurat)
 cxt_seurat = FindNeighbors(cxt_seurat)
 cxt_seurat = FindClusters(object = cxt_seurat)
 cxt_seurat = RunTSNE(cxt_seurat)
-cxt_seurat[["percent_mt"]] <- PercentageFeatureSet(cxt_seurat, pattern = "^MT-")
+#cxt_seurat[["percent_mt"]] <- PercentageFeatureSet(cxt_seurat, pattern = "^MT-")
 #median(cxt_seurat[["percent_mt"]])
-
+#Version(cxt_seurat)
 #cxt_seurat[["percent_mt"]]
 
 #saveRDS(cxt_seurat, file = "sample1scaled.rds")
@@ -43,39 +54,49 @@ cxt_seurat[["percent_mt"]] <- PercentageFeatureSet(cxt_seurat, pattern = "^MT-")
 #DimPlot(tsnes, reduction = "tsne")
 #cxt_non_proc['para']
 #cxt_non_proc['nbis-gene-2']
-#cxt_non_proc['COX2']
+#cxt_non_proc['Aub1']
 #cxt_non_proc['MT-nbis-gene-3']
 #cxt_non_proc['ND4L']
 
 
 #No ATP6, ATP8,para, COX1,2,3,
 #Yes ND4L, ND6,
-#cxt_non_proc['SUMO1']
+#cxt_non_proc['AUB']
+#cxt_non_proc['AUB1']
+#cxt_non_proc['AUB2']
+#cxt_non_proc['AUB3']
+#cxt_non_proc['AUB4']
+#cxt_non_proc['AUB5']
+#cxt_non_proc['AUB']
+
 #cxt_single['SUMO1']
 #cxt_single['PIWIL2']
 
-seur_sce['PIWIL2']
+#seur_sce['AUB']
+
+ncol(cxt_seurat)
 
 #cxt_single = as.SingleCellExperiment(tsnes)
 cxt_non_proc = as.SingleCellExperiment(cxt_seurat)
+set.seed(12345)
 sce = runCellQC(cxt_non_proc, sample = NULL,
                  algorithms = c("QCMetrics", "scDblFinder", "decontX"), mitoGeneLocation = NULL, mitoPrefix="MT-",
                  seed = 12345)#,geneSetList = list(mtGenes),geneSetListLocation = "rownames")#,mitoID=mtGenes)#,mitoPrefix = 'MT-',mitoIDType = "symbol")#,mitoID=mtGenes,mitoIDType = "symbol")
 
 #sce[["percent.mt"]] <- PercentageFeatureSet(sce, pattern = "^MT-")
-median(sce[["mito_percent"]])
-quantile(sce[["mito_percent"]],probs=seq(0,1,.1))
-quantile(sce[["mito_percent"]],probs=seq(0,1,0.01))
-quantile(sce[["nCount_RNA"]],probs=seq(0,1,.01))
-quantile(sce[["nFeature_RNA"]],probs=seq(0,1,.01))
-quantile(sce[["decontX_contamination"]],probs=seq(0,1,.01))
+#median(sce[["mito_percent"]])
+#quantile(sce[["mito_percent"]],probs=seq(0,1,.1))
+#quantile(sce[["mito_percent"]],probs=seq(0,1,0.01))
+#quantile(sce[["nCount_RNA"]],probs=seq(0,1,.01))
+#quantile(sce[["nFeature_RNA"]],probs=seq(0,1,.01))
+#quantile(sce[["decontX_contamination"]],probs=seq(0,1,.01))
 
-ggplot(x=sce[["mito_percent"]], y=sce[["mito_detected"]]) + geom_point(x=sce[["mito_percent"]], y=sce[["mito_detected"]])
+#ggplot(x=sce[["mito_percent"]], y=sce[["mito_detected"]]) + geom_point(x=sce[["mito_percent"]], y=sce[["mito_detected"]])
 #plot(x=sce[["mito_percent"]], y=sce[["mito_detected"]])
 #sce[["mito_detected"]]
 
 model_mito <- lm(sce[["mito_percent"]] ~ sce[["mito_detected"]])
-summary(model_mito)
+#summary(model_mito)
 
 #model_mito$coefficients[2]
 #test = summary(model_mito)#$Std.error
@@ -85,7 +106,7 @@ mito_int = model_mito$coefficients[1] + sqrt(diag(vcov(model_mito)))[1]
 
 
 model_rna <- lm(sce[["nCount_RNA"]] ~ sce[["nFeature_RNA"]])# + sce[["nFeature_RNA"]]:sce[["nCount_RNA"]])
-summary(model_rna)
+#summary(model_rna)
 
 rna_tolerance = model_rna$coefficients[2] + sqrt(diag(vcov(model_rna)))[2]
 rna_int = model_rna$coefficients[1] + sqrt(diag(vcov(model_rna)))[1]
@@ -98,7 +119,7 @@ rna_int = model_rna$coefficients[1] + sqrt(diag(vcov(model_rna)))[1]
 
 umap_sce = runQuickUMAP(sce, reducedDimName = "QC_UMAP",seed = 2023, sample = NULL)
 
-plotUMAP(umap_sce,reducedDimName = "QC_UMAP")#,colorBy = "cluster")
+#plotUMAP(umap_sce,reducedDimName = "QC_UMAP")#,colorBy = "cluster")
 
 
 #paste(sam_name,stage_name,sep="")
@@ -118,6 +139,7 @@ sce_cols = subsetSCECols(sce, colData = c("total > 525",
 #print(mito_tolerance)
 
 ncol(sce_cols)
+#Was 2738 without naming, lets change
 
 #sce_cols = subsetSCECols(sce, colData = c("total > 600", 
                                           #"detected > 300","mito_percent < 10",'scDblFinder_doublet_call == "Singlet"',"decontX_contamination < 0.9"))
@@ -131,11 +153,11 @@ ncol(sce_cols)
 
 #library(DoubletFinder)
 
-plotRunPerCellQCResults(sce)
-plotScDblFinderResults(umap_sce, reducedDimName = "QC_UMAP")
+#plotRunPerCellQCResults(sce)
+#plotScDblFinderResults(umap_sce, reducedDimName = "QC_UMAP")
 #Needs umap above to function
 
-plotDecontXResults(umap_sce, reducedDimName = "QC_UMAP")
+#plotDecontXResults(umap_sce, reducedDimName = "QC_UMAP")
 
 
 #reportCellQC(sce)
@@ -196,12 +218,12 @@ seur_sce = runSeuratPCA(inSCE = seur_sce, useAssay = "seuratNormData", reducedDi
 
 seur_sce = runSeuratUMAP(inSCE = seur_sce,reducedDimName = "umap",seed = 42)
 
-plotSeuratElbow(inSCE = seur_sce)
+#plotSeuratElbow(inSCE = seur_sce)
 
-seur_sce <- runSeuratJackStraw(inSCE = seur_sce, useAssay = "seuratNormData", dims = 50)
+#seur_sce <- runSeuratJackStraw(inSCE = seur_sce, useAssay = "seuratNormData", dims = 50)
 
 #Plot JackStraw
-plotSeuratJackStraw(inSCE = seur_sce, dims = 50)
+#plotSeuratJackStraw(inSCE = seur_sce, dims = 50)
 
 seur_sce = runSeuratFindClusters(inSCE = seur_sce, useReduction = "pca", resolution = 0.8, algorithm = "louvain", dims = 10) 
 #seur_sce_5 = runSeuratFindClusters(inSCE = seur_sce, useReduction = "pca", resolution = 0.8, algorithm = "louvain", dims = 5) 
@@ -244,7 +266,15 @@ seur_sce = runSeuratFindClusters(inSCE = seur_sce, useReduction = "pca", resolut
 
 #plotSeuratGenes(inSCE = seur_sce, useAssay = "seuratNormData", plotType = "ridge", features = "MT-nbis-gene-2", groupVariable = "Seurat_louvain_Resolution0.8", ncol = 2, combine = TRUE) + ylab("Cluster Identity")
 
+#FeaturePlot(temp_seur,features = pca)
 
+#DimPlot(temp_seur) + xlab("UMAP Dimension 1") + ylab("UMAP Dimension 2") + labs(color = "Cluster")
+                                                                    
+#PCAPlot(temp_seur) + xlab("Principle Component 1") + ylab("Principle Component 2") + labs(color = "Cluster")
+
+#RunTSNE(temp_seur)
+
+#TSNEPlot(temp_seur)
 
 #sce_2 <- findMarkerDiffExp(seur_sce, useAssay = "logcounts", method = "wilcox",
 #                          cluster = "cluster",
@@ -267,11 +297,15 @@ markerGenes = metadata(seur_sce)[["seuratMarkers"]]
 # # Order by log fold change and p value
 markerGenes = markerGenes[order(-markerGenes$avg_log2FC, markerGenes$p_val),]
 # 
-markerGenes1 = markerGenes
+#markerGenes1 = markerGenes
 # 
 # head(markerGenes)
-plotSeuratGenes(inSCE = seur_sce, useAssay = "seuratNormData", plotType = "ridge", features = metadata(seur_sce)[["seuratMarkers"]]$gene.id[1:4], groupVariable = "Seurat_louvain_Resolution0.8", ncol = 2, combine = TRUE)
-FeaturePlot(seur_sce, features = c("CecA1","VgR"))#features)
+#plotSeuratGenes(inSCE = seur_sce, useAssay = "seuratNormData", plotType = "ridge", features = metadata(seur_sce)[["seuratMarkers"]]$gene.id[17:20], groupVariable = "Seurat_louvain_Resolution0.8", ncol = 2, combine = TRUE)
+#plotSeuratGenes(inSCE = seur_sce, useAssay = "seuratNormData", plotType = "ridge", features = c("OSK","VGR"), groupVariable = "Seurat_louvain_Resolution0.8", ncol = 2, combine = TRUE)
+#plotSeuratGenes(inSCE = seur_sce, useAssay = "seuratNormData", plotType = "ridge", features = c("MT-ND4","RPS27","MDH1","RPL9"), groupVariable = "Seurat_louvain_Resolution0.8", ncol = 2, combine = TRUE)
+
+
+#FeaturePlot(seur_sce, features = c("CecA1","VgR"))#features)
 #FeaturePlot(temp_seur_scaled, features = "SREBF2")#features)
 
 #cxtovary = Read10X(data.dir = "~/datasets/sample3")
@@ -293,12 +327,18 @@ FeaturePlot(seur_sce, features = c("CecA1","VgR"))#features)
 # }
 # count
 
-temp_seur = as.Seurat(seur_sce, counts = "counts", data = "logcounts")
+temp_seur = as.Seurat(seur_sce, data = "logcounts")#counts = "counts")#, data = "logcounts")
 
-temp_seur = FindNeighbors(temp_seur, dims = 1:10)
-temp_seur = FindClusters(temp_seur,resolution = 0.8, algorithm = "louvain", dims = 10) 
+temp_seur = FindNeighbors(temp_seur, reduction = "pca",dims = 1:10)
+temp_seur = FindClusters(temp_seur,resolution = 0.8, algorithm = "louvain", dims = 1:10) 
+
+#temp_seur = runSeuratFindClusters(temp_seur,useReduction = "pca",resolution = 0.8, algorithm = "louvain", dims = 10) 
+
 
 #cluster.name =
+
+#test_temp = FindClusters(temp_seur,resolution = 0.8, algorithm = 4) 
+
 
 #temp_seur <- FindClusters(temp_seur)
 
@@ -307,38 +347,51 @@ temp_seur = FindClusters(temp_seur,resolution = 0.8, algorithm = "louvain", dims
 markerGenes %>%
   group_by(cluster1) %>%
   top_n(n = 10, wt = avg_log2FC) %>% 
-  arrange(by_group = cluster1) -> top10OG_2
+  arrange(by_group = cluster1) -> top10OG_3
 
 
 #saveRDS(temp_seur, file = "sample3clustered.rds")
 
 temp_seur.markers <- FindAllMarkers(temp_seur, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.01)
 
-head(temp_seur.markers)
+#head(temp_seur.markers)
 
-filt = temp_seur.markers[temp_seur.markers["pct.1"]>0.85,]
+#filt = temp_seur.markers[temp_seur.markers["pct.1"]>0.85,]
 
-head(filt)
+#head(filt)
 
-filt2 = filt[filt["pct.2"]<0.15,]
+#filt2 = filt[filt["pct.2"]<0.15,]
 
-head(filt2)
+#head(filt2)
 
-write.csv(filt2,file='differential_85_15.csv',na='')
+#write.csv(filt2,file='differential_85_15.csv',na='')
 
-write.csv(top10,file='top10.csv',na='')
+#write.csv(top10,file='top10.csv',na='')
 
 
 #Subcluster stuff
 
-DimPlot(temp_seur, reduction = "umap", label = TRUE, label.size = 6 )
+#FeaturePlot(temp_seur, features = "aub") + xlab("UMAP Dimension 1") + ylab("UMAP Dimension 2") + labs(color = "Average Expression")
 
-temp_seur = FindClusters(temp_seur,graph.name="test",resolution = 0.8, algorithm = "louvain", dims = 10) 
+#DimPlot(temp_seur, reduction = "umap", label = TRUE, label.size = 6 )
 
-temp_seur <- FindNeighbors(temp_seur,graph.name="test", dims = 1:10)
-sub_clusts <- FindSubCluster(temp_seur, "2", "test", subcluster.name = "unknown",  resolution = 2, algorithm = 1)
-DimPlot(sub_clusts, reduction = "umap", group.by = "unknown", label = TRUE, label.size = 6)
+#temp_seur = FindClusters(temp_seur,graph.name="test",resolution = 0.8, algorithm = "louvain", dims = 10) 
 
+#temp_seur = runSeuratFindClusters(temp_seur,resolution = 0.8, algorithm = "louvain", dims = 10) 
+
+#temp_seur <- FindNeighbors(temp_seur,graph.name="test", dims = 1:10)
+#sub_clusts <- FindSubCluster(temp_seur, "2", "test", subcluster.name = "unknown",  resolution = 0.75, algorithm = 1)
+#0.5 = 3 clusters for 2
+#0.
+#DimPlot(sub_clusts, reduction = "umap", group.by = "unknown", label = TRUE, label.size = 6)
+
+#sub_clusts = SetIdent(sub_clusts, value = sub_clusts@meta.data$unknown)
+
+#sub_clusts.markers = FindAllMarkers(sub_clusts, only.pos = FALSE, min.pct = 0.25, logfc.threshold = 0.1)
+
+#sub_clusts.markers %>%
+#  group_by(cluster) %>%
+#  top_n(n = 10, wt = avg_log2FC) -> top10_sub_clust
 
 temp_seur.markers %>%
   group_by(cluster) %>%
@@ -350,24 +403,24 @@ temp_seur.markers_neg %>%
   group_by(cluster) %>%
   top_n(n = 10, wt = avg_log2FC) -> top10_neg
 
-temp_seur.markers_len = FindAllMarkers(temp_seur, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.1)
+#temp_seur.markers_len = FindAllMarkers(temp_seur, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.1)
 
-temp_seur.markers_len %>%
-  group_by(cluster) %>%
-  top_n(n = 10, wt = avg_log2FC) -> top10_len
+#temp_seur.markers_len %>%
+#  group_by(cluster) %>%
+#  top_n(n = 10, wt = avg_log2FC) -> top10_len
 
-temp_seur.markers_per <- FindAllMarkers(temp_seur, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+#temp_seur.markers_per <- FindAllMarkers(temp_seur, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 
-temp_seur.markers_per %>%
-  group_by(cluster) %>%
-  top_n(n = 10, wt = avg_log2FC) -> top10
+#temp_seur.markers_per %>%
+#  group_by(cluster) %>%
+#  top_n(n = 10, wt = avg_log2FC) -> top10
 
-write.csv(top10_len,file='top10GenesClusters11_5.csv',na='')
+#write.csv(top10_len,file='top10GenesClusters11_5.csv',na='')
 
 #Totem
-ggplot(as.data.frame(top10)) + geom_point(aes(x=pct.1, y=pct.2,color=cluster))
+ggplot(as.data.frame(top10)) + geom_point(aes(x=pct.1, y=pct.2,color=cluster)) + xlab("Percentage Expressing Inside of Cluster") + ylab("Percentage Expressing Outside of Cluster")
 
-ggplot(as.data.frame(top10)) + geom_point(aes(x=pct.2, y=avg_log2FC,color=cluster))
+ggplot(as.data.frame(top10)) + geom_point(aes(x=pct.2, y=avg_log2FC,color=cluster)) + xlab("Percentage Expressing Outside of Cluster") + ylab("Log-fold difference in Expression")
 
 
 top10['pct.1']
@@ -413,9 +466,11 @@ mean(GetAssayData(object = clust, slot = 'data')["VGR",])
 
 head(AverageExpression(object = temp_seur, group.by = c('ident', 'groups'))$RNA)
 
-saveRDS(temp_seur,file="seurat_clustered_11_28.RDS")
+saveRDS(temp_seur,file="seurat_clustered_1_23.RDS")
 
-saveRDS(temp_seur.markers,file="seurat_markers_11_28.RDS")
+saveRDS(temp_seur.markers,file="seurat_markers_1_23.RDS")
+
+test10 = readRDS(file = "seurat_markers_11_28.RDS")
 
 quantile(t(temp_seur[["mito_percent"]]))
 
@@ -470,8 +525,21 @@ saveRDS(temp_seur_scaled, file ="samplepooledforheatmap.rds")
 DoHeatmap(temp_seur_scaled, features = top10$gene) + NoLegend()#features = top10$gene) + NoLegend()
 
 data("pbmc_small")
-cd_genes <- c("VGR", "GCAT","CecA1")
-DotPlot(object = temp_seur, features = cd_genes)
+cd_genes <- c("Vgr", "Vg","CecA1")
+
+cd_genes <- c("shrb", "spict","rabx1","aub","crq","mob2","syx1A","hml","gene5192","gene13019")
+
+cd_genes <- c("aub","gene5192","gene13019")
+labeller_cars <- c("aub"="aubergine","gene5192"="syntaxin",
+                   "gene13019"="rabx1")
+DotPlot(object = temp_seur, features = cd_genes) + ylab("Cluster") + xlab("Gene")+scale_x_discrete(labels=function(x) str_replace_all(x, labeller_cars))
+
+
+cd_genes <- c("AUB1","AUB2","AUB3","AUB4","AUB5","AUB6")
+#labeller_cars <- c("aub"="aubergine","gene5192"="syntaxin",
+                   #"gene13019"="rabx1")
+DotPlot(object = temp_seur, features = cd_genes) + ylab("Cluster") + xlab("Gene")#+scale_x_discrete(labels=function(x) str_replace_all(x, labeller_cars))
+
 #DotPlot9
 
 #call this function to save the file 

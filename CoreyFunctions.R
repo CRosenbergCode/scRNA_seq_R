@@ -1,6 +1,7 @@
 #Place these two files in same directory
-seurat_ob = readRDS("seurat_clustered_11_28.RDS")
-seurat_ob.markers = readRDS("seurat_markers_11_28.RDS")
+seurat_ob = readRDS("seurat_clustered_1_23.RDS")
+#old_ob.markers = readRDS("seurat_markers_1_23.RDS")
+seurat_ob.markers = readRDS("seurat_markers_1_23.RDS")
 
 #Helper Function
 extractNumeric = function(seur_ob){
@@ -12,7 +13,7 @@ extractNumeric = function(seur_ob){
 }
 
 getDiffExpression = function(min_clust,max_other){
-  filt = seurat_ob.markers[seurat_ob.markers["pct.1"]>min_clust,]
+  filt = seurat_ob.markers[s3eurat_ob.markers["pct.1"]>min_clust,]
   #pct.2 is the name of the column
   #max_other is the maximum threshold
   filt2 = filt[filt["pct.2"]<max_other,]
@@ -57,7 +58,7 @@ getGeneSummary = function(genes,clusts = seq(0,13)){
 #Desired genes can be placed inside of c() with each name surrounded by quotes and separated
 #by commas
 #Ex: getGeneSummary(c("getGeneSummary(c("gene1","gene2"))"))
-getGeneSummary(c("VGR"))
+getGeneSummary(c("AUB8"))
 
 
 #getDiffExpresion()
@@ -76,3 +77,7 @@ getClusterSummary()
 seurat_ob.markers %>%
   group_by(cluster) %>%
   top_n(n = 10, wt = avg_log2FC) -> top10
+
+old_ob.markers %>%
+  group_by(cluster) %>%
+  top_n(n = 10, wt = avg_log2FC) -> old10
