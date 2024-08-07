@@ -497,6 +497,20 @@ mean_feats =
                                             ,'scDblFinder_doublet_call == "Singlet"',"decontX_contamination < 0.7"))
 
 clust = subset(x = temp_seur, subset = seurat_clusters == 0)
+
+nurseclust = subset(x = temp_seur, subset = seurat_clusters == c(10,11) )
+
+
+maybenurse.markers <- FindAllMarkers(nurseclust, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.1)#,ident.1=10,ident.2=12)
+
+
+gsc1clust = subset(x = temp_seur, subset = seurat_clusters == c(10,11) )
+
+
+gsc1.markers <- FindAllMarkers(gsc1clust, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.1)#,ident.1=10,ident.2=12)
+
+
+
 print(clust[["RNA"]]["VgR"])
 'para'
 
@@ -512,6 +526,8 @@ head(AverageExpression(object = temp_seur, group.by = c('ident', 'groups'))$RNA)
 
 saveRDS(temp_seur,file="seurat_clustered_1_23.RDS")
 
+temp_seur=readRDS(file="rdsFiles/seurat_clustered_1_23.RDS")
+
 saveRDS(temp_seur.markers,file="seurat_markers_1_23.RDS")
 
 test10 = readRDS(file = "seurat_markers_11_28.RDS")
@@ -522,18 +538,21 @@ ncol(GetAssayData(object = clust, slot = 'data'))
 ncol(ckust)
 
 median(as.numeric(temp_seur[["total"]][4,]))
-extractNumeric = function(seur_ob){
+extractNumeric = function(seur_ob,subset="total"){
   temp = c()
-  for(i in temp_seur[["total"]][,]){
+  for(i in temp_seur[[subset]][,]){
     temp = c(temp,i)
   }
   return(temp)
 }
-median(extractNumeric(clust[["total"]]))
+median(extractNumeric(clust,subset="detected"))
+
+temp_seur[["seurat_clusters"]]
 
 for(i in seq(0,13)){
   #clust = seur_sce[,test == i]
   clust = subset(x = temp_seur, subset = seurat_clusters == i)
+  print("Test")
   print(paste("Cluster ",i,sep=""))
   #print(length(test[test==i]))
   print(median(clust[["total"]]))
@@ -543,6 +562,8 @@ for(i in seq(0,13)){
   print(length(test[test == i]))
   #print()
 }
+
+clust[["total"]][1]
 
 umis_per_feat = 
 
@@ -595,6 +616,31 @@ DotPlot(object = temp_seur, features = cd_genes)# + ylab("Cluster") + xlab("Gene
 
 
 #DotPlot9
+
+#kirre
+#gene6166                                                          377    0.0     6
+#ID=gene14430                                                         257    0.0     7
+#ID=gene1590                                                          158    1e-128  7
+#ID=gene3156                                                          174    1e-111  5
+#ID=gene6355                                                          141    9e-109  8
+#ID=gene7631                                                          136    1e-104  9
+#ID=gene8378
+cd_genes <- c("gene6166","gene14430","CLINT1","DCAF10","gene6355","gene7631")
+
+DotPlot(object = temp_seur, features = cd_genes)# + ylab("Cluster") + xlab("Gene")+scale_x_discrete(labels=function(x) str_replace_all(x, labeller_cars))
+
+
+#Kwon paper genes
+#SCRB3
+
+cd_genes <- c("SCRB3","gene452","SPARC","osk","vas","gene3564")
+#Believed to be oenocytoid marker]
+#check SCRB9 as well
+""
+#Kwon paper
+#SPARC universal, in 12, 13, 8, 5
+DotPlot(object = temp_seur, features = cd_genes)# + ylab("Cluster") + xlab("Gene")+scale_x_discrete(labels=function(x) str_replace_all(x, labeller_cars))
+
 
 #call this function to save the file 
 #dev.off()

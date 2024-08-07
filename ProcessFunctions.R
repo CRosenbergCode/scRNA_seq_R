@@ -4,15 +4,20 @@ library(singleCellTK)
 library(dittoSeq)
 
 #This function 
-create_sce = function(sampleDir,fullScale = TRUE,save=FALSE){
+create_sce = function(sampleDir,fullScale = TRUE,save=FALSE,plots=FALSE){
   cxtovary = Read10X(data.dir = paste("~/datasets/",sampleDir,sep=""))
   cxt_seurat = CreateSeuratObject(counts = cxtovary)
   ctx_seurat = NormalizeData(object = cxt_seurat)
   cxt_seurat = FindVariableFeatures(object = cxt_seurat)
-  cxt_seurat  = ScaleData(cxt_seurat, features = rownames(cxt_seurat)) #Remove features = to increase speed but reduce number of scaled genes
-  cxt_seurat  = RunPCA(cxt_seurat )
-  cxt_seurat  = FindNeighbors(cxt_seurat )
-  cxt_seurat  = FindClusters(object = cxt_seurat )
+  if(fullScale){
+    cxt_seurat  = ScaleData(cxt_seurat, features = rownames(cxt_seurat)) #Remove features = to increase speed but reduce number of scaled genes
+  }
+  else{
+    cxt_seurat  = ScaleData(cxt_seurat) #Remove features = to increase speed but reduce number of scaled genes 
+  }
+  cxt_seurat  = RunPCA(cxt_seurat)
+  cxt_seurat  = FindNeighbors(cxt_seurat)
+  cxt_seurat  = FindClusters(object = cxt_seurat)
   cxt_seurat  = RunTSNE(cxt_seurat)
   
   cxt_sce = as.SingleCellExperiment(cxt_seurat)
@@ -31,7 +36,12 @@ create_sce = function(sampleDir,fullScale = TRUE,save=FALSE){
 #mitoFile is an optional argument for location of a file containing the
 #names of mitochondrial genes.
 #Ex: "IntermediateCTarsalisMitoGenes.txt"
-performCellQC = function(sce,mitoFile=FALSE){
+performCellQC = function(sce,mitoFile=FALSE,mitoPre=TRUE){
+  if(mitoPre){
+    sce = runCellQC(cxt_non_proc, sample = NULL,
+                    algorithms = c("QCMetrics", "scDblFinder", "decontX"), mitoGeneLocation = NULL, mitoPrefix="MT-",
+                    seed = 12345)
+  }
   if(mitoFile){
     mtGenes <- readLines(mitoFile)
     sce = runCellQC(cxt_non_proc, sample = NULL,

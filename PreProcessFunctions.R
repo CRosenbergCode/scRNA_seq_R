@@ -15,6 +15,7 @@ library(R.utils)
 #Ex: "sample1/features.tsv.gz"
 #namesLoc is the relative path of the file containing the names of putative genes
 #Ex: "Cxt_annot_corrections.csv"
+
 replaceGeneName = function(featLoc, namesLoc){
   #Remove .gz for certain parts
   cutFeatLoc = substring(featLoc,1,nchar(featLoc)-3)
@@ -48,6 +49,11 @@ replaceGeneName = function(featLoc, namesLoc){
   write.table(feats, file=cutFeatLoc, quote=FALSE, sep='\t', col.names = FALSE, row.names = FALSE)
   gzip(cutFeatLoc,overwrite=TRUE)
 }
+
+replaceGeneName("pooledE4000/features.tsv.gz","Cxt_annot_corrections_1_17.csv")
+
+replaceGeneName("samplePooledMito/features.tsv.gz","Cxt_annot_corrections_1_17.csv")
+
 
 #Create SingleCell experiment object from three out files from cell ranger
 #Saves object as RDS for further use

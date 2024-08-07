@@ -15,9 +15,9 @@ FileNameOutput <- paste('Probes__',name_base,sep="")
 EnsemblFormat <- TRUE
 #dG37 probes Minimum score
 ScoreMin <- 0.9
-#probes minimum length [default 32]
+#probes maximum length [default 32]
 TailleSondeMax <- 32
-#probes maximum length [default 26]
+#probes minimum length [default 26]
 TailleSondeMin <- 26
 #mimimum number of nucleotides between two probes (end to start positions)
 DistanceMinInterSonde <- 2
