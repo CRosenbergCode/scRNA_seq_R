@@ -1,2 +1,0 @@
-library(scater)
-library(TSCAN)
