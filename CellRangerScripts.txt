@@ -1,0 +1,7 @@
+cellranger count --id Cxt_Ovaries_123_7-23-2023 --transcriptome=Cxt1 --fastqs=Cxt-raw --sample SI-TT-H1 --sample SI-TT-H2 --sample lib_1 --sample lib_2 --sample lib_3 --expect-cells 4000
+07-25-2023
+cellranger count --id Cxt_Ovaries_1_7-25-2023 --transcriptome=Cxt1 --fastqs=Cxt-raw --sample SI-TT-H1 --sample lib_1 --force-cells 2000
+
+cellranger count --id Cxt_Ovaries_2_7-25-2023 --transcriptome=Cxt1 --fastqs=Cxt-raw --sample SI-TT-H2 --sample lib_2 --force-cells 2000
+
+cellranger count --id Cxt_Ovaries_3_7-25-2023 --transcriptome=Cxt1 --fastqs=Cxt-raw --sample lib_3 --force-cells 2000

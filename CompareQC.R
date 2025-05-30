@@ -1,3 +1,4 @@
+#Load libraries
 library(Seurat)
 library(SeuratObject)
 library(dplyr)
@@ -7,19 +8,9 @@ library(ggplot2)
 library(stringr)
 library(irlba)
 library(Matrix)
-
-#https://stackoverflow.com/questions/25114771/glpk-no-such-file-or-directory-error-when-trying-to-install-r-package
-
 library(reticulate)
 
-
-#remove.packages('irlba')
-
-#install.packages('irlba')
-
-#remove.packages('irlba')
-
-#install.packages('irlba')
+#https://stackoverflow.com/questions/25114771/glpk-no-such-file-or-directory-error-when-trying-to-install-r-package
 
 #use_python("/home/camcorey/.local/lib/python3.8/")
 #Check for your local system
@@ -30,10 +21,8 @@ library(reticulate)
 #packageDescription("singleCellTK")$Version
 #packageDescription("SummarizedExperiment")$Version
 R.version
-#singleCellTK()
-#cxtovary = Read10X(data.dir = "~/datasets/pooledE4000")
+
 cxtovary = Read10X(data.dir = "~/datasets/samplePooledMito")
-#cxtovary = Read10X(data.dir = "~/datasets/oldSamp")
 
 #Features fil 31 instead of 53, 22 short)
 
@@ -205,28 +194,6 @@ metadata_clean <- filtered_seurat@meta.data
 
 #test_cxt_seurat[["RNA"]]@meta.features[sort.list(test_cxt_seurat[["RNA"]]@meta.features[['vst.mean']], decreasing = TRUE),]
 
-#SaveH5Seurat(tsnes, overwrite = TRUE)
-#DimPlot(tsnes, reduction = "tsne")
-#cxt_non_proc['para']
-#cxt_non_proc['nbis-gene-2']
-#cxt_non_proc['Aub1']
-#cxt_non_proc['MT-nbis-gene-3']
-#cxt_non_proc['ND4L']
-
-
-#No ATP6, ATP8,para, COX1,2,3,
-#Yes ND4L, ND6,
-#cxt_non_proc['AUB']
-#cxt_non_proc['AUB1']
-#cxt_non_proc['AUB2']
-#cxt_non_proc['AUB3']
-#cxt_non_proc['AUB4']
-#cxt_non_proc['AUB5']
-#cxt_non_proc['AUB']
-
-#cxt_single['SUMO1']
-#cxt_single['PIWIL2']
-
 #umap_merged = RunUMAP(merged_seurat, reducedDimName = "QC_UMAP",nn.name = "weighted.nn")
 merged_seurat@neighbors
 umap_sce = runQuickUMAP(sce, reducedDimName = "QC_UMAP",seed = 2023, sample = NULL)
@@ -243,15 +210,11 @@ mergedSCE = as.SingleCellExperiment(merged_seurat)
 set.seed(12345)
 sample1QC = runCellQC(sample1sce, sample = NULL,
                 algorithms = c("QCMetrics", "scDblFinder", "decontX"), mitoGeneLocation = NULL, mitoPrefix="MT-",
-                seed = 12345)#,geneSetList = list(mtGenes),geneSetListLocation = "rownames")#,mitoID=mtGenes)#,mitoPrefix = 'MT-',mitoIDType = "symbol")#,mitoID=mtGenes,mitoIDType = "symbol")
+                seed = 12345)
 
 sample2QC = runCellQC(sample2sce, sample = NULL,
                       algorithms = c("QCMetrics", "scDblFinder", "decontX"), mitoGeneLocation = NULL, mitoPrefix="MT-",
-                      seed = 12345)#,geneSetList = list(mtGenes),geneSetListLocation = "rownames")#,mitoID=mtGenes)#,mitoPrefix = 'MT-',mitoIDType = "symbol")#,mitoID=mtGenes,mitoIDType = "symbol")
-
-#FeaturePlot(pbmc3k.final, features = features)
-
-
+                      seed = 12345)
 
 sample1QCU = runQuickUMAP(sample1QC, reducedDimName = "QC_UMAP",seed = 2023, sample = NULL)
 
@@ -266,47 +229,17 @@ plotRunPerCellQCResults(sample2QC)
 plotScDblFinderResults(sample2QCU, reducedDimName = "QC_UMAP")
 plotDecontXResults(sample2QCU, reducedDimName = "QC_UMAP")
 
-
-
 #Needs umap above to function
 
-
-
-#reportCellQC(sce)
-
-#sce[["percent.mt"]] <- PercentageFeatureSet(sce, pattern = "^MT-")
-#median(sce[["mito_percent"]])
-#quantile(sce[["mito_percent"]],probs=seq(0,1,.1))
-#quantile(sce[["mito_percent"]],probs=seq(0,1,0.01))
-#quantile(sce[["nCount_RNA"]],probs=seq(0,1,.01))
-#quantile(sce[["nFeature_RNA"]],probs=seq(0,1,.01))
-#quantile(sce[["decontX_contamination"]],probs=seq(0,1,.01))
-
-#ggplot(x=sce[["mito_percent"]], y=sce[["mito_detected"]]) + geom_point(x=sce[["mito_percent"]], y=sce[["mito_detected"]])
-#plot(x=sce[["mito_percent"]], y=sce[["mito_detected"]])
-#sce[["mito_detected"]]
-
 model_mito <- lm(sce[["mito_percent"]] ~ sce[["mito_detected"]])
-#summary(model_mito)
 
-#model_mito$coefficients[2]
-#test = summary(model_mito)#$Std.error
-#sqrt(diag(vcov(model_mito)))[2]
 mito_tolerance = model_mito$coefficients[2] + sqrt(diag(vcov(model_mito)))[2]
 mito_int = model_mito$coefficients[1] + sqrt(diag(vcov(model_mito)))[1]
 
-
 model_rna <- lm(sce[["nCount_RNA"]] ~ sce[["nFeature_RNA"]])# + sce[["nFeature_RNA"]]:sce[["nCount_RNA"]])
-#summary(model_rna)
 
 rna_tolerance = model_rna$coefficients[2] + sqrt(diag(vcov(model_rna)))[2]
 rna_int = model_rna$coefficients[1] + sqrt(diag(vcov(model_rna)))[1]
-
-
-#merged.srt[["percent_mt"]] <- PercentageFeatureSet(merged.srt, pattern = "^MT-")
-
-
-#testsce = subset(sce, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5 & decontX_contamination == "Singlet" & scDblFinder_doublet_call < 0.9 & nCount_RNA < 200)
 
 umap_sce = runQuickUMAP(sample1QC, reducedDimName = "QC_UMAP",seed = 2023, sample = NULL)
 
@@ -360,12 +293,7 @@ PCAPlot(seurat_integrated,
 DimPlot(seurat_integrated,
         split.by = "sample") 
 
-#paste(sam_name,stage_name,sep="")
-
 #testsce = subset(sce, subset = nFeature_RNA > 200 & nFeature_RNA < 2500 & percent.mt < 5 & decontX_contamination == "Singlet" & scDblFinder_doublet_call < 0.9 & nCount_RNA < 200)
-
-
-
 
 sce_cols = subsetSCECols(sce, colData = c("total > 525", 
                                           "detected > 300",paste("mito_percent < ",mito_int," + ",2*mito_tolerance,"*mito_detected",sep="")
